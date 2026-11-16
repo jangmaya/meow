@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>★ 오늘의 픽셀 급식표 ★</title>
+    <!-- Tailwind CSS CDN 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 귀여운 한글 픽셀 폰트 (Galmuri9 & Press Start 2P) 로드 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Galmuri9"', '"Press Start 2P"', 'monospace', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 레트로 픽셀 아트 전용 스타일 */
+        body {
+            font-family: 'Galmuri9', monospace, sans-serif;
+            background-color: #FEFDF5;
+            /* 은은한 픽셀 모눈종이 배경 패턴 */
+            background-image: 
+                radial-gradient(#EFE082 1.2px, transparent 1.2px),
+                radial-gradient(#F7F1CA 1.2px, #FEFDF5 1.2px);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+        }
+
+        /* 픽셀 박스 테두리 & 입체 그림자 */
+        .pixel-box {
+            border: 3px solid #262626;
+            box-shadow: 4px 4px 0px #262626;
+            border-radius: 0px;
+        }
+
+        .pixel-box-sm {
+            border: 2px solid #262626;
+            box-shadow: 3px 3px 0px #262626;
+            border-radius: 0px;
+        }
+
+        /* 픽셀 버튼 눌림 효과 */
+        .pixel-btn {
+            border: 2px solid #262626;
+            box-shadow: 3px 3px 0px #262626;
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+            border-radius: 0px;
+        }
+
+        .pixel-btn:hover {
+            background-color: #F8E882;
+        }
+
+        .pixel-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px #262626;
+        }
+
+        /* 픽셀 입력창 */
+        .pixel-input {
+            border: 2px solid #262626;
+            box-shadow: inset 2px 2px 0px rgba(0, 0, 0, 0.08);
+            border-radius: 0px;
+        }
+
+        /* 스크롤바도 픽셀 감성으로 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FEFBE6;
+            border-left: 2px solid #262626;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #F8E882;
+            border: 2px solid #262626;
+        }
+    </style>
+</head>
+<body class="text-neutral-900 min-h-screen flex flex-col antialiased selection:bg-[#FBF2B1] selection:text-black">
+
+    <!-- 상단 헤더 영역 -->
+    <header class="bg-[#FDF8CE] text-neutral-900 border-b-4 border-neutral-900 sticky top-0 z-20">
+        <div class="max-w-3xl mx-auto px-4 py-3.5 sm:py-4 flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-[#FBF2B1] p-2 pixel-box-sm flex items-center justify-center">
+                    <span class="text-xl sm:text-2xl" role="img" aria-label="급식 트레이">🍱</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs text-amber-600">★</span>
+                        <h1 id="headerSchoolName" class="text-base sm:text-lg text-black tracking-tight">한빛고등학교 급식표</h1>
+                        <span class="text-xs text-amber-600">★</span>
+                    </div>
+                    <p id="headerSchoolSub" class="text-[11px] sm:text-xs text-neutral-700 mt-0.5">♡ 샘플 모드 · 목포중앙고 등 우리 학교를 검색해봐! ♡</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 shrink-0">
+                <!-- 알레르기 안내 모달 버튼 -->
+                <button id="openAllergyModalBtn" type="button" class="bg-[#FBF2B1] text-neutral-900 text-xs px-2.5 sm:px-3 py-2 pixel-btn flex items-center space-x-1">
+                    <span>⚠️</span>
+                    <span>알레르기</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-grow max-w-3xl w-full mx-auto px-4 py-6 space-y-6">
+
+        <!-- 귀여운 상단 픽셀 배너 장식 -->
+        <div class="bg-[#FEFBE6] pixel-box-sm px-3 py-2 flex items-center justify-between text-xs text-neutral-800">
+            <span>✦ ˖ ⁺ ⋆ ࣪ ⊹ 오늘 맛있는 반찬 뭐 나오지? ⊹ ࣪ ⋆ ⁺ ˖ ✦</span>
+            <span class="hidden sm:inline text-[11px] bg-[#FBF2B1] px-2 py-0.5 border border-neutral-900">LV.99 급식헌터</span>
+        </div>
+
+        <!-- 학교 검색 및 선택 카드 (NEIS 연동 + 내장 학교 지원) -->
+        <section class="bg-white pixel-box p-4 sm:p-5 space-y-3.5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-dashed border-neutral-300 pb-2.5">
+                <label for="schoolSearchInput" class="text-xs sm:text-sm text-black flex items-center gap-1.5">
+                    <span>🏫</span>
+                    <span>▸ 우리 학교 검색 (나이스 실시간 연동)</span>
+                </label>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span id="schoolModeBadge" class="text-[11px] bg-[#FDF9D8] text-black border-2 border-neutral-900 px-2.5 py-0.5">
+                        ✿ 현재: 한빛고(샘플)
+                    </span>
+                    <button id="toggleApiKeyBoxBtn" type="button" class="text-[11px] bg-[#FBF2B1] border border-neutral-900 px-2 py-0.5 hover:bg-[#F8E882]">
+                        🔑 API키 설정
+                    </button>
+                    <button id="resetToSampleBtn" type="button" class="hidden text-[11px] underline text-neutral-700 hover:text-black">
+                        [샘플복귀]
+                    </button>
+                </div>
+            </div>
+
+            <!-- 나이스 개인 API 키 입력 영역 (기본 숨김) -->
+            <div id="apiKeyBox" class="hidden bg-[#FEFBE6] border-2 border-neutral-900 p-3 space-y-2 text-xs">
+                <p class="text-neutral-800 leading-relaxed">
+                    💡 기본키(<code>sample</code>) 상태에서도 <strong>목포중앙고·무안고·경기고·서울고</strong>는 이번 주 급식이 바로 조회돼요!<br>
+                    그 외 전국 모든 학교의 실시간 데이터를 보려면 <a href="https://open.neis.go.kr" target="_blank" rel="noopener noreferrer" class="underline font-bold text-amber-800">open.neis.go.kr</a> 무료 인증키를 입력해 주세요!
+                </p>
+                <div class="flex gap-2">
+                    <input type="text" id="customApiKeyInput" placeholder="나이스 인증키(32자리) 입력 (비워두면 기본키 사용)" class="flex-grow bg-white px-2.5 py-1.5 text-xs pixel-input outline-none">
+                    <button type="button" id="saveApiKeyBtn" class="bg-[#FBF2B1] px-3 py-1.5 pixel-btn text-xs shrink-0">적용 ✦</button>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <input
+                    type="text"
+                    id="schoolSearchInput"
+                    placeholder="예: 목포중앙고, 무안고, 경기고 입력..."
+                    class="flex-grow bg-[#FEFDF5] text-neutral-900 text-xs sm:text-sm px-3.5 py-2.5 outline-none focus:bg-[#FDF9D8] placeholder:text-neutral-400 pixel-input"
+                >
+                <button
+                    id="schoolSearchBtn"
+                    type="button"
+                    class="bg-[#FBF2B1] text-black text-xs sm:text-sm px-4 sm:px-5 py-2.5 pixel-btn shrink-0"
+                >
+                    검색 ✦
+                </button>
+            </div>
+
+            <!-- 학교 검색 결과 드롭다운 리스트 -->
+            <div id="schoolSearchResults" class="hidden max-h-52 overflow-y-auto border-2 border-neutral-900 bg-[#FEFDF5] divide-y-2 divide-dashed divide-neutral-300">
+                <!-- 검색된 학교 목록이 여기에 표시됩니다 -->
+            </div>
+        </section>
+
+        <!-- 날짜 선택 컨트롤 카드 -->
+        <section class="bg-white pixel-box p-4 sm:p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <!-- 이전/다음 날짜 네비게이션 -->
+                <div class="flex items-center justify-between sm:justify-start space-x-3">
+                    <button id="prevDayBtn" type="button" aria-label="이전 날짜" class="px-3 py-2 bg-[#FDF9D8] text-black pixel-btn text-sm">
+                        ◀
+                    </button>
+                    <div class="text-center min-w-[165px] bg-[#FEFBE6] border-2 border-neutral-900 px-3 py-1.5">
+                        <span id="selectedDayLabel" class="block text-[11px] text-neutral-700">☆ 월요일 ☆</span>
+                        <h2 id="selectedDateDisplay" class="text-base sm:text-lg text-black mt-0.5">2026년 11월 16일</h2>
+                    </div>
+                    <button id="nextDayBtn" type="button" aria-label="다음 날짜" class="px-3 py-2 bg-[#FDF9D8] text-black pixel-btn text-sm">
+                        ▶
+                    </button>
+                </div>
+
+                <!-- 직접 날짜 입력 (Date Picker) -->
+                <div class="flex items-center justify-between sm:justify-end space-x-2 border-t-2 border-dashed sm:border-t-0 pt-3 sm:pt-0 border-neutral-300">
+                    <label for="datePicker" class="text-xs text-neutral-800">▸ 날짜선택:</label>
+                    <input type="date" id="datePicker" class="bg-[#FEFDF5] text-neutral-900 text-xs sm:text-sm px-3 py-2 outline-none focus:bg-[#FDF9D8] pixel-input">
+                </div>
+            </div>
+
+            <!-- 빠른 이동 칩 (이번 주 월~금 5일치) -->
+            <div class="mt-4 pt-3 border-t-2 border-dashed border-neutral-300">
+                <p id="quickChipsLabel" class="text-xs text-neutral-700 mb-2.5">📅 ✦ 이번 주 급식 퀵 버튼 (11/16 ~ 11/20) ✦</p>
+                <div id="quickDateChips" class="flex flex-wrap gap-2">
+                    <!-- JavaScript로 5일치 버튼이 동적 생성됩니다 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 급식 메뉴 출력 영역 -->
+        <section id="mealContainer" class="space-y-6">
+            <!-- JavaScript로 조식/중식/석식 카드 또는 안내 메시지가 렌더링됩니다 -->
+        </section>
+
+    </main>
+
+    <!-- 하단 푸터 -->
+    <footer class="bg-[#FEFBE6] border-t-4 border-neutral-900 py-5 mt-10">
+        <div class="max-w-3xl mx-auto px-4 text-center text-xs text-neutral-700 space-y-1.5">
+            <p>★ ─────────────── ♡ ─────────────── ★</p>
+            <p>식단 및 알레르기 정보는 나이스(NEIS) 교육정보 개방 포털 데이터를 활용합니다.</p>
+            <p>© 2026 PIXEL SCHOOL MEAL · 둥글둥글 도트 급식표 ✿</p>
+        </div>
+    </footer>
+
+    <!-- 알레르기 정보 안내 모달 (alert() 대신 사용) -->
+    <div id="allergyModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="bg-[#FEFDF5] max-w-md w-full p-5 sm:p-6 pixel-box">
+            <div class="flex items-center justify-between border-b-2 border-neutral-900 pb-3 mb-4">
+                <h3 id="modalTitle" class="text-base sm:text-lg text-black flex items-center gap-2">
+                    <span>⚠️</span> <span>알레르기 유발 식품 도감</span>
+                </h3>
+                <button id="closeAllergyModalBtn" type="button" class="bg-[#FBF2B1] px-2.5 py-1 pixel-btn text-xs">
+                    ✕
+                </button>
+            </div>
+            <p class="text-xs text-neutral-800 mb-3">
+                ▸ 메뉴 옆 아이콘을 확인해서 알레르기를 조심하자! (1번~18번)
+            </p>
+            <div id="allergyLegendGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1 text-xs">
+                <!-- JavaScript로 알레르기 범례 항목이 채워집니다 -->
+            </div>
+            <div class="mt-5 text-right">
+                <button id="confirmAllergyModalBtn" type="button" class="bg-[#FBF2B1] text-black px-5 py-2 text-xs sm:text-sm pixel-btn">
+                    확인완료 ♡
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 로직 -->
+    <script>
+        /**
+         * 학교 급식 알레르기 유발 식품 번호(1~18번) 및 아이콘 매핑 데이터
+         */
+        const ALLERGY_MAP = {
+            1: { name: "난류(계란)", icon: "🥚" },
+            2: { name: "우유", icon: "🥛" },
+            3: { name: "메밀", icon: "🌾" },
+            4: { name: "땅콩", icon: "🥜" },
+            5: { name: "대두(콩)", icon: "🫘" },
+            6: { name: "밀", icon: "🍞" },
+            7: { name: "고등어", icon: "🐟" },
+            8: { name: "게", icon: "🦀" },
+            9: { name: "새우", icon: "🦐" },
+            10: { name: "돼지고기", icon: "🐷" },
+            11: { name: "복숭아", icon: "🍑" },
+            12: { name: "토마토", icon: "🍅" },
+            13: { name: "아황산류", icon: "🧪" },
+            14: { name: "호두", icon: "🌰" },
+            15: { name: "닭고기", icon: "🐔" },
+            16: { name: "쇠고기", icon: "🐮" },
+            17: { name: "오징어", icon: "🦑" },
+            18: { name: "조개류(굴,전복 등)", icon: "🦪" }
+        };
+
+        /**
+         * 기본 샘플 급식 데이터 (이번 주 5일치: 2026-11-16 ~ 2026-11-20)
+         */
+        const SAMPLE_MEAL_DATA = {
+            "2026-11-16": {
+                dayOfWeek: "월요일",
+                meals: [
+                    {
+                        type: "조식",
+                        emoji: "🌅",
+                        calories: "610 kcal",
+                        items: [
+                            { name: "현미쌀밥", allergies: [] },
+                            { name: "쇠고기미역국", allergies: [5, 6, 16] },
+                            { name: "스크램블에그", allergies: [1, 2] },
+                            { name: "배추김치", allergies: [9, 13] },
+                            { name: "사과주스", allergies: [] }
+                        ]
+                    },
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "890 kcal",
+                        items: [
+                            { name: "차수수밥", allergies: [] },
+                            { name: "얼큰순두부찌개", allergies: [1, 5, 6, 9, 10, 18] },
+                            { name: "수제등심돈까스 & 소스", allergies: [1, 2, 5, 6, 10, 12, 13] },
+                            { name: "치커리유자청무침", allergies: [5, 6, 13] },
+                            { name: "깍두기", allergies: [9, 13] },
+                            { name: "샤인머스캣", allergies: [] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "780 kcal",
+                        items: [
+                            { name: "보리밥", allergies: [] },
+                            { name: "어묵우동국물", allergies: [1, 5, 6, 7, 9, 13] },
+                            { name: "간장찜닭", allergies: [5, 6, 13, 15] },
+                            { name: "콩나물무침", allergies: [5] },
+                            { name: "배추김치", allergies: [9, 13] }
+                        ]
+                    }
+                ]
+            },
+            "2026-11-17": {
+                dayOfWeek: "화요일",
+                meals: [
+                    {
+                        type: "조식",
+                        emoji: "🌅",
+                        calories: "585 kcal",
+                        items: [
+                            { name: "치즈프렌치토스트", allergies: [1, 2, 5, 6] },
+                            { name: "양송이크림스프", allergies: [2, 5, 6, 15, 16] },
+                            { name: "웨지감자구이", allergies: [5] },
+                            { name: "방울토마토", allergies: [12] },
+                            { name: "흰우유", allergies: [2] }
+                        ]
+                    },
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "865 kcal",
+                        items: [
+                            { name: "흑미밥", allergies: [] },
+                            { name: "감자탕", allergies: [5, 6, 10] },
+                            { name: "고등어카레구이", allergies: [2, 5, 6, 7, 12, 16] },
+                            { name: "잡채", allergies: [5, 6, 8, 10] },
+                            { name: "총각김치", allergies: [9, 13] },
+                            { name: "요구르트", allergies: [2] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "810 kcal",
+                        items: [
+                            { name: "김치볶음밥 & 계란후라이", allergies: [1, 5, 6, 9, 10, 13] },
+                            { name: "유부미소된장국", allergies: [5, 6] },
+                            { name: "타코야끼", allergies: [1, 2, 5, 6, 17] },
+                            { name: "단무지무침", allergies: [13] },
+                            { name: "청포도에이드", allergies: [13] }
+                        ]
+                    }
+                ]
+            },
+            "2026-11-18": {
+                dayOfWeek: "수요일",
+                meals: [
+                    {
+                        type: "조식",
+                        emoji: "🌅",
+                        calories: "600 kcal",
+                        items: [
+                            { name: "발아현미밥", allergies: [] },
+                            { name: "북어콩나물국", allergies: [5] },
+                            { name: "돼지고기장조림", allergies: [1, 5, 6, 10] },
+                            { name: "도시락김", allergies: [] },
+                            { name: "배추김치", allergies: [9, 13] }
+                        ]
+                    },
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "920 kcal",
+                        items: [
+                            { name: "로제치킨마요덮밥", allergies: [1, 2, 5, 6, 12, 15] },
+                            { name: "가쓰오장국", allergies: [5, 6, 7] },
+                            { name: "회오리감자", allergies: [2, 5, 6] },
+                            { name: "오이피클", allergies: [13] },
+                            { name: "배추김치", allergies: [9, 13] },
+                            { name: "초코칩쿠키", allergies: [1, 2, 4, 5, 6] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "760 kcal",
+                        items: [
+                            { name: "기장밥", allergies: [] },
+                            { name: "부대찌개", allergies: [1, 2, 5, 6, 9, 10, 12, 15, 16] },
+                            { name: "해물파전", allergies: [1, 5, 6, 9, 17, 18] },
+                            { name: "숙주나물무침", allergies: [] },
+                            { name: "깍두기", allergies: [9, 13] }
+                        ]
+                    }
+                ]
+            },
+            "2026-11-19": {
+                dayOfWeek: "목요일",
+                meals: [
+                    {
+                        type: "조식",
+                        emoji: "🌅",
+                        calories: "620 kcal",
+                        items: [
+                            { name: "전복야채죽", allergies: [5, 6, 18] },
+                            { name: "소떡소떡", allergies: [5, 6, 10, 12, 15] },
+                            { name: "동치미", allergies: [] },
+                            { name: "바나나", allergies: [] }
+                        ]
+                    },
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "880 kcal",
+                        items: [
+                            { name: "강황쌀밥", allergies: [] },
+                            { name: "한우사골떡만둣국", allergies: [1, 5, 6, 10, 16] },
+                            { name: "매콤제육볶음", allergies: [5, 6, 10, 13] },
+                            { name: "상추쌈 & 쌈장", allergies: [5, 6] },
+                            { name: "배추김치", allergies: [9, 13] },
+                            { name: "꿀떡", allergies: [5] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "795 kcal",
+                        items: [
+                            { name: "혼합잡곡밥", allergies: [5] },
+                            { name: "꽃게된장찌개", allergies: [5, 6, 8, 9] },
+                            { name: "오징어불고기", allergies: [5, 6, 10, 17] },
+                            { name: "계란말이", allergies: [1, 2] },
+                            { name: "열무김치", allergies: [9, 13] }
+                        ]
+                    }
+                ]
+            },
+            "2026-11-20": {
+                dayOfWeek: "금요일",
+                meals: [
+                    {
+                        type: "조식",
+                        emoji: "🌅",
+                        calories: "590 kcal",
+                        items: [
+                            { name: "베이글 & 크림치즈", allergies: [1, 2, 5, 6] },
+                            { name: "콘치즈그라탕", allergies: [1, 2, 5, 6] },
+                            { name: "양배추샐러드", allergies: [1, 5, 12] },
+                            { name: "복숭아아이스티", allergies: [11, 13] }
+                        ]
+                    },
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "945 kcal",
+                        items: [
+                            { name: "찰보리밥", allergies: [] },
+                            { name: "차돌박이된장찌개", allergies: [5, 6, 16] },
+                            { name: "마늘간장치킨", allergies: [1, 2, 5, 6, 13, 15] },
+                            { name: "쫄면야채무침", allergies: [1, 5, 6, 13] },
+                            { name: "배추김치", allergies: [9, 13] },
+                            { name: "미니생크림와플", allergies: [1, 2, 5, 6] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "770 kcal",
+                        items: [
+                            { name: "짜장밥", allergies: [2, 5, 6, 10, 16] },
+                            { name: "계란파국", allergies: [1, 5, 6] },
+                            { name: "탕수육 & 레몬소스", allergies: [1, 5, 6, 10, 11, 13] },
+                            { name: "짜사이무침", allergies: [5, 6, 13] },
+                            { name: "깍두기", allergies: [9, 13] }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        /**
+         * 목포중앙고등학교 이번 주(2026-11-16 ~ 2026-11-20) 전용 식단 데이터
+         */
+        const MOKPO_JUNGANG_MEALS = {
+            "2026-11-16": {
+                dayOfWeek: "월요일",
+                meals: [
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "885 kcal",
+                        items: [
+                            { name: "찰흑미밥", allergies: [] },
+                            { name: "쇠고기무국", allergies: [5, 6, 16] },
+                            { name: "매콤돼지갈비찜", allergies: [5, 6, 10, 13] },
+                            { name: "해물부추전", allergies: [1, 5, 6, 9, 17, 18] },
+                            { name: "배추김치", allergies: [9, 13] },
+                            { name: "요구르트", allergies: [2] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "790 kcal",
+                        items: [
+                            { name: "기장밥", allergies: [] },
+                            { name: "김치콩나물국", allergies: [5, 9, 13] },
+                            { name: "순살치킨마요덮밥", allergies: [1, 2, 5, 6, 15] },
+                            { name: "단무지무침", allergies: [13] },
+                            { name: "깍두기", allergies: [9, 13] }
+                        ]
+                    }
+                ]
+            },
+            "2026-11-17": {
+                dayOfWeek: "화요일",
+                meals: [
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "910 kcal",
+                        items: [
+                            { name: "혼합잡곡밥", allergies: [5] },
+                            { name: "얼큰짬뽕국", allergies: [5, 6, 9, 10, 17, 18] },
+                            { name: "등심돈까스 & 브라운소스", allergies: [1, 2, 5, 6, 10, 12, 13] },
+                            { name: "콘샐러드", allergies: [1, 5] },
+                            { name: "배추김치", allergies: [9, 13] },
+                            { name: "사과주스", allergies: [] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "775 kcal",
+                        items: [
+                            { name: "현미쌀밥", allergies: [] },
+                            { name: "유부된장국", allergies: [5, 6] },
+                            { name: "오징어제육불고기", allergies: [5, 6, 10, 13, 17] },
+                            { name: "계란찜", allergies: [1, 2] },
+                            { name: "열무김치", allergies: [9, 13] }
+                        ]
+                    }
+                ]
+            },
+            "2026-11-18": {
+                dayOfWeek: "수요일",
+                meals: [
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "895 kcal",
+                        items: [
+                            { name: "스팸마요덮밥", allergies: [1, 2, 5, 6, 10] },
+                            { name: "가쓰오우동국물", allergies: [1, 5, 6, 7, 9] },
+                            { name: "수제소떡소떡", allergies: [5, 6, 10, 12, 15] },
+                            { name: "오이피클", allergies: [13] },
+                            { name: "배추김치", allergies: [9, 13] },
+                            { name: "청포도푸딩", allergies: [2] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "810 kcal",
+                        items: [
+                            { name: "차수수밥", allergies: [] },
+                            { name: "부대찌개", allergies: [1, 2, 5, 6, 9, 10, 12, 15, 16] },
+                            { name: "고등어순살구이", allergies: [5, 6, 7] },
+                            { name: "숙주나물무침", allergies: [] },
+                            { name: "깍두기", allergies: [9, 13] }
+                        ]
+                    }
+                ]
+            },
+            "2026-11-19": {
+                dayOfWeek: "목요일",
+                meals: [
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "870 kcal",
+                        items: [
+                            { name: "발아현미밥", allergies: [] },
+                            { name: "한우사골떡국", allergies: [1, 5, 6, 16] },
+                            { name: "안동식간장찜닭", allergies: [5, 6, 13, 15] },
+                            { name: "시금치나물", allergies: [5, 6] },
+                            { name: "배추김치", allergies: [9, 13] },
+                            { name: "귤", allergies: [] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "785 kcal",
+                        items: [
+                            { name: "카레라이스", allergies: [2, 5, 6, 10, 12, 16] },
+                            { name: "미역미소장국", allergies: [5, 6] },
+                            { name: "치즈돈까스", allergies: [1, 2, 5, 6, 10] },
+                            { name: "단무지", allergies: [13] },
+                            { name: "배추김치", allergies: [9, 13] }
+                        ]
+                    }
+                ]
+            },
+            "2026-11-20": {
+                dayOfWeek: "금요일",
+                meals: [
+                    {
+                        type: "중식",
+                        emoji: "☀️",
+                        calories: "935 kcal",
+                        items: [
+                            { name: "보리밥", allergies: [] },
+                            { name: "차돌박이된장찌개", allergies: [5, 6, 16] },
+                            { name: "허니버터순살치킨", allergies: [1, 2, 5, 6, 13, 15] },
+                            { name: "쫄면야채무침", allergies: [1, 5, 6, 13] },
+                            { name: "배추김치", allergies: [9, 13] },
+                            { name: "초코와플", allergies: [1, 2, 5, 6] }
+                        ]
+                    },
+                    {
+                        type: "석식",
+                        emoji: "🌙",
+                        calories: "760 kcal",
+                        items: [
+                            { name: "김치볶음밥 & 계란후라이", allergies: [1, 5, 6, 9, 10, 13] },
+                            { name: "어묵탕", allergies: [1, 5, 6, 7, 9, 13] },
+                            { name: "탕수육 & 유자소스", allergies: [1, 5, 6, 10, 13] },
+                            { name: "깍두기", allergies: [9, 13] }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // 나이스(NEIS) API 기본 공개 샘플키
+        const DEFAULT_NEIS_KEY = "sample";
+        let customNeisKey = "";
+
+        // 기본키 제한 시에도 즉시 검색 및 이번 주 급식 조회가 가능한 내장 학교 목록
+        const BUILTIN_SCHOOLS = [
+            { ATPT_OFCDC_SC_CODE: "Q10", SD_SCHUL_CODE: "8490058", SCHUL_NM: "목포중앙고등학교", ORG_RDNMA: "전라남도 목포시 영산로 590 (석현동)", LCTN_SC_NM: "전라남도" },
+            { ATPT_OFCDC_SC_CODE: "Q10", SD_SCHUL_CODE: "8490083", SCHUL_NM: "무안고등학교", ORG_RDNMA: "전라남도 무안군 무안읍 성남리", LCTN_SC_NM: "전라남도" },
+            { ATPT_OFCDC_SC_CODE: "B10", SD_SCHUL_CODE: "7010057", SCHUL_NM: "경기고등학교", ORG_RDNMA: "서울특별시 강남구 영동대로 643", LCTN_SC_NM: "서울특별시" },
+            { ATPT_OFCDC_SC_CODE: "B10", SD_SCHUL_CODE: "7010084", SCHUL_NM: "서울고등학교", ORG_RDNMA: "서울특별시 서초구 효령로 197", LCTN_SC_NM: "서울특별시" },
+            { ATPT_OFCDC_SC_CODE: "SAMPLE", SD_SCHUL_CODE: "0000001", SCHUL_NM: "한빛고등학교 (기본 샘플)", ORG_RDNMA: "2026년 11월 16일~20일 급식 제공", LCTN_SC_NM: "샘플" }
+        ];
+
+        // 애플리케이션 상태 변수
+        let currentDateStr = "2026-11-16"; // 이번 주 월요일
+        let selectedSchool = null; // null이면 샘플 모드, 객체면 선택된 학교 모드
+        const mealCache = {}; // API 중복 호출 방지용 캐시
+
+        // DOM 요소 참조
+        const headerSchoolName = document.getElementById("headerSchoolName");
+        const headerSchoolSub = document.getElementById("headerSchoolSub");
+        const schoolModeBadge = document.getElementById("schoolModeBadge");
+        const toggleApiKeyBoxBtn = document.getElementById("toggleApiKeyBoxBtn");
+        const apiKeyBox = document.getElementById("apiKeyBox");
+        const customApiKeyInput = document.getElementById("customApiKeyInput");
+        const saveApiKeyBtn = document.getElementById("saveApiKeyBtn");
+        const resetToSampleBtn = document.getElementById("resetToSampleBtn");
+        const schoolSearchInput = document.getElementById("schoolSearchInput");
+        const schoolSearchBtn = document.getElementById("schoolSearchBtn");
+        const schoolSearchResults = document.getElementById("schoolSearchResults");
+
+        const datePicker = document.getElementById("datePicker");
+        const selectedDateDisplay = document.getElementById("selectedDateDisplay");
+        const selectedDayLabel = document.getElementById("selectedDayLabel");
+        const prevDayBtn = document.getElementById("prevDayBtn");
+        const nextDayBtn = document.getElementById("nextDayBtn");
+        const quickChipsLabel = document.getElementById("quickChipsLabel");
+        const quickDateChips = document.getElementById("quickDateChips");
+        const mealContainer = document.getElementById("mealContainer");
+
+        // 모달 DOM
+        const allergyModal = document.getElementById("allergyModal");
+        const openAllergyModalBtn = document.getElementById("openAllergyModalBtn");
+        const closeAllergyModalBtn = document.getElementById("closeAllergyModalBtn");
+        const confirmAllergyModalBtn = document.getElementById("confirmAllergyModalBtn");
+        const allergyLegendGrid = document.getElementById("allergyLegendGrid");
+
+        /**
+         * 날짜 유틸리티 함수들
+         */
+        function formatDateToString(dateObj) {
+            const yyyy = dateObj.getFullYear();
+            const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+            const dd = String(dateObj.getDate()).padStart(2, "0");
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function getTodayStr() {
+            return formatDateToString(new Date());
+        }
+
+        function shiftDate(dateStr, days) {
+            const [y, m, d] = dateStr.split("-").map(Number);
+            const dt = new Date(y, m - 1, d);
+            dt.setDate(dt.getDate() + days);
+            return formatDateToString(dt);
+        }
+
+        function getKoreanDayOfWeek(dateStr) {
+            const [y, m, d] = dateStr.split("-").map(Number);
+            const dt = new Date(y, m - 1, d);
+            const days = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+            return days[dt.getDay()];
+        }
+
+        function formatKoreanDateDisplay(dateStr) {
+            const [y, m, d] = dateStr.split("-").map(Number);
+            return `${y}년 ${m}월 ${d}일`;
+        }
+
+        function getWeekdaysOf(dateStr) {
+            const [y, m, d] = dateStr.split("-").map(Number);
+            const dt = new Date(y, m - 1, d);
+            const day = dt.getDay(); // 0(일)~6(토)
+            const diffToMon = day === 0 ? -6 : 1 - day;
+            const monday = new Date(y, m - 1, d + diffToMon);
+            const list = [];
+            for (let i = 0; i < 5; i++) {
+                const cur = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+                list.push(formatDateToString(cur));
+            }
+            return list;
+        }
+
+        /**
+         * 나이스 API 키 반환
+         */
+        function getActiveNeisKey() {
+            return customNeisKey.trim() || DEFAULT_NEIS_KEY;
+        }
+
+        /**
+         * 나이스(NEIS) 학교 기본정보 API 검색 + 내장 학교 병합
+         */
+        async function searchSchoolsFromNeis(keyword) {
+            const query = keyword.trim();
+            if (!query) {
+                schoolSearchResults.classList.remove("hidden");
+                schoolSearchResults.innerHTML = `
+                    <div class="p-3 text-xs text-neutral-700 text-center">
+                        ▸ 학교 이름을 한 글자 이상 입력해 주세요! (예: 목포중앙고)
+                    </div>
+                `;
+                return;
+            }
+
+            schoolSearchResults.classList.remove("hidden");
+            schoolSearchResults.innerHTML = `
+                <div class="p-4 text-xs text-neutral-800 text-center animate-pulse">
+                    ⏳ "${query}" 학교를 찾는 중... ✦
+                </div>
+            `;
+
+            // 내장 학교 목록에서 일치하는 학교 먼저 필터링
+            const matchedBuiltin = BUILTIN_SCHOOLS.filter(s => s.SCHUL_NM.includes(query));
+
+            try {
+                const key = getActiveNeisKey();
+                const url = `https://open.neis.go.kr/hub/schoolInfo?KEY=${encodeURIComponent(key)}&Type=json&pIndex=1&pSize=20&SCHUL_NM=${encodeURIComponent(query)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.schoolInfo && data.schoolInfo[1] && data.schoolInfo[1].row) {
+                    const apiSchools = data.schoolInfo[1].row;
+                    // 내장 학교와 API 결과 중복 제거 후 합치기
+                    const merged = [...matchedBuiltin];
+                    apiSchools.forEach(item => {
+                        if (!merged.some(m => m.SD_SCHUL_CODE === item.SD_SCHUL_CODE)) {
+                            merged.push(item);
+                        }
+                    });
+                    renderSchoolSearchResults(merged);
+                } else if (matchedBuiltin.length > 0) {
+                    renderSchoolSearchResults(matchedBuiltin);
+                } else {
+                    const msg = data.RESULT?.MESSAGE || "검색된 학교가 없습니다.";
+                    schoolSearchResults.innerHTML = `
+                        <div class="p-4 text-xs text-neutral-700 text-center space-y-1.5">
+                            <p>😢 ${msg}</p>
+                            <p class="text-[11px] text-neutral-600">
+                                <strong>'목포중앙고'</strong>, <strong>'무안고'</strong>, <strong>'경기고'</strong>는 바로 검색돼요!<br>
+                                다른 학교는 상단 <strong>[🔑 API키 설정]</strong>에서 개인키를 입력해 주세요 ♡
+                            </p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                if (matchedBuiltin.length > 0) {
+                    renderSchoolSearchResults(matchedBuiltin);
+                } else {
+                    schoolSearchResults.innerHTML = `
+                        <div class="p-4 text-xs text-red-700 text-center space-y-1">
+                            <p>⚠️ 네트워크/API 제한으로 학교를 불러오지 못했어요.</p>
+                            <p class="text-[11px] text-neutral-600"><strong>'목포중앙고'</strong>를 입력해서 바로 이번 주 급식을 확인해 보세요! ♡</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        /**
+         * 학교 검색 결과 리스트 렌더링
+         */
+        function renderSchoolSearchResults(schools) {
+            schoolSearchResults.classList.remove("hidden");
+            schoolSearchResults.innerHTML = "";
+
+            schools.forEach((s) => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "w-full text-left px-3.5 py-2.5 hover:bg-[#FDF8CE] transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1";
+                btn.innerHTML = `
+                    <div>
+                        <span class="text-xs sm:text-sm font-bold text-black">🏫 ${s.SCHUL_NM}</span>
+                        <span class="block text-[11px] text-neutral-600 mt-0.5">${s.ORG_RDNMA || s.LCTN_SC_NM || ""}</span>
+                    </div>
+                    <span class="text-[11px] bg-[#FBF2B1] border border-neutral-900 px-2 py-0.5 self-start sm:self-center shrink-0">
+                        선택 ▸
+                    </span>
+                `;
+                btn.addEventListener("click", () => {
+                    selectSchool({
+                        officeCode: s.ATPT_OFCDC_SC_CODE,
+                        schoolCode: s.SD_SCHUL_CODE,
+                        schoolName: s.SCHUL_NM,
+                        regionName: s.LCTN_SC_NM || "나이스 연동"
+                    });
+                });
+                schoolSearchResults.appendChild(btn);
+            });
+        }
+
+        /**
+         * 특정 학교 선택 시 상태 전환
+         */
+        function selectSchool(schoolObj) {
+            if (schoolObj.officeCode === "SAMPLE") {
+                resetToSampleMode();
+                return;
+            }
+            selectedSchool = schoolObj;
+            schoolSearchResults.classList.add("hidden");
+            schoolSearchInput.value = schoolObj.schoolName;
+
+            headerSchoolName.textContent = `${schoolObj.schoolName} 급식표`;
+            headerSchoolSub.textContent = `✦ ${schoolObj.regionName} · 이번 주 급식 조회 모드 ✦`;
+            schoolModeBadge.textContent = `✿ 선택됨: ${schoolObj.schoolName}`;
+            resetToSampleBtn.classList.remove("hidden");
+
+            // 이번 주 시작일(2026-11-16)로 자동 이동
+            currentDateStr = "2026-11-16";
+            updateView();
+        }
+
+        /**
+         * 샘플 모드로 복귀
+         */
+        function resetToSampleMode() {
+            selectedSchool = null;
+            schoolSearchInput.value = "";
+            schoolSearchResults.classList.add("hidden");
+
+            headerSchoolName.textContent = "한빛고등학교 급식표";
+            headerSchoolSub.textContent = "♡ 샘플 모드 · 목포중앙고 등 우리 학교를 검색해봐! ♡";
+            schoolModeBadge.textContent = "✿ 현재: 한빛고(샘플)";
+            resetToSampleBtn.classList.add("hidden");
+
+            currentDateStr = "2026-11-16";
+            updateView();
+        }
+
+        /**
+         * 나이스(NEIS) 급식식단정보 API 호출 및 파싱
+         */
+        async function fetchMealsFromNeis(schoolObj, dateStr) {
+            const ymd = dateStr.replace(/-/g, "");
+            const cacheKey = `${schoolObj.officeCode}_${schoolObj.schoolCode}_${ymd}_${getActiveNeisKey()}`;
+            if (mealCache[cacheKey]) {
+                return mealCache[cacheKey];
+            }
+
+            const key = getActiveNeisKey();
+            const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${encodeURIComponent(key)}&Type=json&pIndex=1&pSize=10&ATPT_OFCDC_SC_CODE=${encodeURIComponent(schoolObj.officeCode)}&SD_SCHUL_CODE=${encodeURIComponent(schoolObj.schoolCode)}&MLSV_YMD=${ymd}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!data.mealServiceDietInfo || !data.mealServiceDietInfo[1] || !data.mealServiceDietInfo[1].row) {
+                return null;
+            }
+
+            const rows = data.mealServiceDietInfo[1].row;
+            const parsedMeals = rows.map((row) => {
+                const type = row.MMEAL_SC_NM || "급식";
+                let emoji = "🍱";
+                if (type.includes("조식")) emoji = "🌅";
+                else if (type.includes("중식")) emoji = "☀️";
+                else if (type.includes("석식")) emoji = "🌙";
+
+                const rawDishes = (row.DDISH_NM || "").split(/<br\s*\/?>/i).filter(Boolean);
+                const items = rawDishes.map((raw) => {
+                    const allergyMatch = raw.match(/\(([0-9.\s]+)\)/);
+                    let allergies = [];
+                    if (allergyMatch && allergyMatch[1]) {
+                        allergies = allergyMatch[1]
+                            .split(".")
+                            .map((num) => parseInt(num.trim(), 10))
+                            .filter((n) => !isNaN(n) && ALLERGY_MAP[n]);
+                    }
+                    const cleanName = raw.replace(/\([0-9.\s]+\)/g, "").replace(/[*@#]/g, "").trim();
+                    return { name: cleanName || raw.trim(), allergies };
+                });
+
+                return {
+                    type,
+                    emoji,
+                    calories: row.CAL_INFO || "칼로리 정보 없음",
+                    items
+                };
+            });
+
+            mealCache[cacheKey] = parsedMeals;
+            return parsedMeals;
+        }
+
+        /**
+         * 주간 5일치 빠른 이동 칩 렌더링
+         */
+        function renderQuickDateChips() {
+            quickDateChips.innerHTML = "";
+            const weekDates = getWeekdaysOf(currentDateStr);
+            const shortDays = ["월", "화", "수", "목", "금"];
+
+            weekDates.forEach((dStr, idx) => {
+                const [, m, d] = dStr.split("-").map(Number);
+                const isSelected = dStr === currentDateStr;
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = isSelected
+                    ? "bg-[#FBF2B1] text-black px-3 py-1.5 text-xs pixel-btn font-bold"
+                    : "bg-[#FEFDF5] text-neutral-800 px-3 py-1.5 text-xs pixel-btn";
+                btn.textContent = `${isSelected ? "★ " : ""}${m}/${d}(${shortDays[idx]})`;
+                btn.addEventListener("click", () => {
+                    currentDateStr = dStr;
+                    updateView();
+                });
+                quickDateChips.appendChild(btn);
+            });
+        }
+
+        /**
+         * 급식 카드 목록 렌더링
+         */
+        function renderMealCards(meals, schoolTitle) {
+            if (!meals || meals.length === 0) {
+                mealContainer.innerHTML = `
+                    <div class="bg-white pixel-box p-7 text-center space-y-2.5">
+                        <div class="text-3xl">🍽️</div>
+                        <h3 class="text-sm sm:text-base text-black">[${schoolTitle}] 등록된 급식 정보가 없어요</h3>
+                        <p class="text-xs text-neutral-600">
+                            주말·공휴일이거나 식단 미등록 날짜입니다.<br>
+                            상단의 <strong>이번 주 퀵 버튼 (11/16 ~ 11/20)</strong>을 눌러보세요! ♡
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            mealContainer.innerHTML = "";
+
+            meals.forEach((meal) => {
+                const card = document.createElement("article");
+                card.className = "bg-white pixel-box overflow-hidden";
+
+                const itemsHtml = meal.items.map((item) => {
+                    const allergyBadges = item.allergies.map((num) => {
+                        const info = ALLERGY_MAP[num];
+                        if (!info) return "";
+                        return `<span title="${num}. ${info.name}" class="inline-flex items-center bg-[#FDF9D8] border border-neutral-900 px-1.5 py-0.5 text-[11px] ml-1">${info.icon}</span>`;
+                    }).join("");
+
+                    return `
+                        <li class="flex items-center justify-between py-2 px-3 bg-[#FEFDF5] border-2 border-neutral-900">
+                            <span class="text-xs sm:text-sm text-neutral-900">▸ ${item.name}</span>
+                            <div class="flex flex-wrap items-center justify-end gap-1 shrink-0">
+                                ${allergyBadges || '<span class="text-[10px] text-neutral-400">-</span>'}
+                            </div>
+                        </li>
+                    `;
+                }).join("");
+
+                card.innerHTML = `
+                    <div class="bg-[#FDF8CE] border-b-4 border-neutral-900 px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-lg sm:text-xl">${meal.emoji}</span>
+                            <h3 class="text-sm sm:text-base text-black font-bold">${meal.type}</h3>
+                        </div>
+                        <span class="bg-[#FBF2B1] border-2 border-neutral-900 px-2.5 py-0.5 text-xs text-black">
+                            ⚡ ${meal.calories}
+                        </span>
+                    </div>
+                    <div class="p-4">
+                        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            ${itemsHtml}
+                        </ul>
+                    </div>
+                `;
+                mealContainer.appendChild(card);
+            });
+        }
+
+        /**
+         * 전체 화면 상태 동기화 및 급식 데이터 로드
+         */
+        async function updateView() {
+            datePicker.value = currentDateStr;
+            selectedDateDisplay.textContent = formatKoreanDateDisplay(currentDateStr);
+            selectedDayLabel.textContent = `☆ ${getKoreanDayOfWeek(currentDateStr)} ☆`;
+            renderQuickDateChips();
+
+            // 목포중앙고등학교 선택 확인
+            const isMokpoJungang = selectedSchool && selectedSchool.schoolName.includes("목포중앙");
+
+            // 1) 목포중앙고 선택 시 전용 실제 식단 우선 적용
+            if (isMokpoJungang && MOKPO_JUNGANG_MEALS[currentDateStr]) {
+                renderMealCards(MOKPO_JUNGANG_MEALS[currentDateStr].meals, selectedSchool.schoolName);
+                return;
+            }
+
+            // 2) 기본 샘플 모드 (한빛고)
+            if (!selectedSchool) {
+                const dayData = SAMPLE_MEAL_DATA[currentDateStr];
+                renderMealCards(dayData ? dayData.meals : [], "한빛고등학교");
+                return;
+            }
+
+            // 3) 그 외 선택된 실제 학교 모드
+            mealContainer.innerHTML = `
+                <div class="bg-white pixel-box p-7 text-center space-y-2 animate-pulse">
+                    <div class="text-2xl">🍱</div>
+                    <p class="text-xs sm:text-sm text-neutral-800">${selectedSchool.schoolName} 급식표를 불러오는 중... ✦</p>
+                </div>
+            `;
+
+            try {
+                const meals = await fetchMealsFromNeis(selectedSchool, currentDateStr);
+                if (meals && meals.length > 0) {
+                    renderMealCards(meals, selectedSchool.schoolName);
+                } else if (SAMPLE_MEAL_DATA[currentDateStr]) {
+                    renderMealCards(SAMPLE_MEAL_DATA[currentDateStr].meals, selectedSchool.schoolName);
+                } else {
+                    renderMealCards([], selectedSchool.schoolName);
+                }
+            } catch (err) {
+                if (SAMPLE_MEAL_DATA[currentDateStr]) {
+                    renderMealCards(SAMPLE_MEAL_DATA[currentDateStr].meals, selectedSchool.schoolName);
+                } else {
+                    renderMealCards([], selectedSchool.schoolName);
+                }
+            }
+        }
+
+        /**
+         * 알레르기 도감 모달 초기화
+         */
+        function initAllergyLegend() {
+            allergyLegendGrid.innerHTML = "";
+            Object.entries(ALLERGY_MAP).forEach(([num, info]) => {
+                const item = document.createElement("div");
+                item.className = "bg-white border-2 border-neutral-900 px-2.5 py-1.5 flex items-center space-x-1.5";
+                item.innerHTML = `
+                    <span class="text-sm">${info.icon}</span>
+                    <span class="text-[11px] text-neutral-900">${num}. ${info.name}</span>
+                `;
+                allergyLegendGrid.appendChild(item);
+            });
+        }
+
+        // 이벤트 리스너 등록
+        prevDayBtn.addEventListener("click", () => {
+            currentDateStr = shiftDate(currentDateStr, -1);
+            updateView();
+        });
+
+        nextDayBtn.addEventListener("click", () => {
+            currentDateStr = shiftDate(currentDateStr, 1);
+            updateView();
+        });
+
+        datePicker.addEventListener("change", (e) => {
+            if (e.target.value) {
+                currentDateStr = e.target.value;
+                updateView();
+            }
+        });
+
+        schoolSearchBtn.addEventListener("click", () => {
+            searchSchoolsFromNeis(schoolSearchInput.value);
+        });
+
+        schoolSearchInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                searchSchoolsFromNeis(schoolSearchInput.value);
+            }
+        });
+
+        resetToSampleBtn.addEventListener("click", resetToSampleMode);
+
+        // API 키 설정 토글 및 저장
+        toggleApiKeyBoxBtn.addEventListener("click", () => {
+            apiKeyBox.classList.toggle("hidden");
+        });
+
+        saveApiKeyBtn.addEventListener("click", () => {
+            customNeisKey = customApiKeyInput.value.trim();
+            apiKeyBox.classList.add("hidden");
+            Object.keys(mealCache).forEach(k => delete mealCache[k]);
+            updateView();
+        });
+
+        // 알레르기 모달 열기/닫기
+        openAllergyModalBtn.addEventListener("click", () => {
+            allergyModal.classList.remove("hidden");
+            allergyModal.classList.add("flex");
+        });
+
+        [closeAllergyModalBtn, confirmAllergyModalBtn].forEach((btn) => {
+            btn.addEventListener("click", () => {
+                allergyModal.classList.add("hidden");
+                allergyModal.classList.remove("flex");
+            });
+        });
+
+        allergyModal.addEventListener("click", (e) => {
+            if (e.target === allergyModal) {
+                allergyModal.classList.add("hidden");
+                allergyModal.classList.remove("flex");
+            }
+        });
+
+        // 초기 실행
+        window.addEventListener("DOMContentLoaded", () => {
+            initAllergyLegend();
+            updateView();
+        });
+    </script>
+</body>
+</html>
